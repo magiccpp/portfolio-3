@@ -1,0 +1,1 @@
+python dynamic-model1.py --model_storage_url="https://stockmodels.blob.core.windows.net/models/" --http_port=8181 --grpc_port=8182
