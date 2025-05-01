@@ -1,0 +1,1 @@
+web: python -m kserv-dynamic-grpcv2 --model_name=dynamic-model-name --model_storage_url="https://stockmodels.blob.core.windows.net/models/" --http_port=8080 --grpc_port=8081 --model_type=sklearn

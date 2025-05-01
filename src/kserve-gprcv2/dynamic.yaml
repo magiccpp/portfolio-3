@@ -1,0 +1,29 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: dynamic-model-grpcv2
+  annotations:
+    autoscaling.knative.dev/target: "4"
+    autoscaling.knative.dev/maxScale: "16"   # <-- optional upper bound
+spec:
+  predictor:
+    containers:
+      - name: kserve-gprcv2-container
+        image: magiccpp1/dynamic-model-grpc:v1
+        ports:
+          - name: h2c
+            containerPort: 8081
+            protocol: TCP
+        args:
+        env:
+          - name: MODEL_STORAGE_URL
+            value: "https://storage.googleapis.com/kserve-models"
+          - name: LOG_LEVEL
+            value: "DEBUG"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 1
+            memory: 1Gi
