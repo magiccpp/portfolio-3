@@ -3,7 +3,7 @@ kind: InferenceService
 metadata:
   name: dynamic-model-grpcv2
   annotations:
-    autoscaling.knative.dev/target: "4"
+    autoscaling.knative.dev/target: "8"
     autoscaling.knative.dev/maxScale: "16"   # <-- optional upper bound
 spec:
   predictor:
