@@ -3,10 +3,13 @@ https://kserve.github.io/website/0.14/modelserving/v1beta1/custom/custom_model/#
 run locally:
 python dynamic-model1.py --model_storage_url="https://stockmodels.blob.core.windows.net/models/" --http_port=8181 --grpc_port=8182
 
+run in docker:
+
+
 build docker
 pack build --builder=heroku/builder:24 magiccpp1/dynamic-model-grpc:v1
 docker push magiccpp1/dynamic-model-grpc:v1
-kubectl delete inferenceservice dynamic-model
+kubectl delete inferenceservice dynamic-model-grpcv2
 kubectl apply -f dynamic.yaml
 
 

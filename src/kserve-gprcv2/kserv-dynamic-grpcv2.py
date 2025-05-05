@@ -4,9 +4,10 @@ import time
 import requests
 import joblib
 import numpy as np
-
+import threading
 from typing import Dict
 from sklearn.base import BaseEstimator
+from collections import defaultdict
 
 from kserve import (
     Model,
@@ -44,6 +45,7 @@ class DynamicSklearnGRPCModel(Model):
         self.cache_dir = cache_dir
         os.makedirs(self.cache_dir, exist_ok=True)
         self.model_cache: Dict[str, BaseEstimator] = {}
+        self.model_locks = defaultdict(threading.Lock)
         self.ready = False
         self._mark_ready()
 
@@ -68,14 +70,17 @@ class DynamicSklearnGRPCModel(Model):
 
     def load_model(self, model_name: str) -> BaseEstimator:
         if model_name in self.model_cache:
+            logging.info(f"Model `{model_name}` fetched from cache.")
             return self.model_cache[model_name]
-        path = self.get_model_path(model_name)
-        if not os.path.isfile(path):
-            path = self.download_model(model_name)
-        model = joblib.load(path)
-        self.model_cache[model_name] = model
-        logging.info(f"Loaded `{model_name}` into cache.")
-        return model
+        lock = self.model_locks[model_name]
+        with lock:
+            path = self.get_model_path(model_name)
+            if not os.path.isfile(path):
+                path = self.download_model(model_name)
+            model = joblib.load(path)
+            self.model_cache[model_name] = model
+            logging.info(f"Loaded `{model_name}` into cache.")
+            return model
 
     async def predict(
         self,
@@ -134,8 +139,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_storage_url",
         required=True,
-        help="https://storage.googleapis.com/kserve-models"
+        help="https://stockmodels.blob.core.windows.net/models/"
     )
+    
     args, _ = parser.parse_known_args()
     # instantiate your V2 gRPC model
     model = DynamicSklearnGRPCModel(
@@ -144,4 +150,4 @@ if __name__ == "__main__":
     )
 
     # start both HTTP & gRPC servers
-    ModelServer().start([model])
+    ModelServer(workers=args.workers).start([model])
